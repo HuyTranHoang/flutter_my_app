@@ -1,11 +1,26 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:my_app/model/cart.dart';
+import 'package:my_app/widget/badget.dart';
+import 'package:provider/provider.dart';
 
 import '../widget/products_grid.dart';
 
-class ProductsOverviewScreen extends StatelessWidget {
+enum FilterOptions {
+  favorites,
+  all,
+}
+
+class ProductsOverviewScreen extends StatefulWidget {
   const ProductsOverviewScreen({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _ProductsOverviewScreenState();
+}
+
+class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
+  bool _showOnlyFavorites = false;
 
   @override
   Widget build(BuildContext context) {
@@ -16,15 +31,32 @@ class ProductsOverviewScreen extends StatelessWidget {
           PopupMenuButton(
             icon: const Icon(Icons.more_vert),
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 0, child: Text('Only favorites')),
-              const PopupMenuItem(value: 1, child: Text('Show All')),
+              const PopupMenuItem(
+                  value: FilterOptions.favorites,
+                  child: Text('Only favorites')),
+              const PopupMenuItem(
+                  value: FilterOptions.all, child: Text('Show All')),
             ],
-            onSelected: (int selectedValue) => log('Value $selectedValue'),
-          )
+            onSelected: (FilterOptions selectedValue) => {
+              setState(() {
+                if (selectedValue == FilterOptions.favorites) {
+                  _showOnlyFavorites = true;
+                } else {
+                  _showOnlyFavorites = false;
+                }
+              }),
+            },
+          ),
+          Consumer<Cart>(
+              builder: (context, cartData, _) => Badge(
+                  value: cartData.itemCount.toString(),
+                  child: IconButton(
+                    icon: const Icon(Icons.shopping_cart),
+                    onPressed: () {},
+                  )))
         ],
       ),
-      body: const ProductsGrid(),
+      body: ProductsGrid(_showOnlyFavorites),
     );
   }
-
 }
