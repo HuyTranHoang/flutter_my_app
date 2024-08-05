@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../model/cart.dart';
 import 'package:provider/provider.dart';
 
+import '../model/order.dart';
 import '../widget/cart_item_widget.dart';
 
 class CartScreen extends StatelessWidget {
@@ -13,7 +14,9 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cart = context.watch<Cart>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Your Cart'),),
+      appBar: AppBar(
+        title: const Text('Your Cart'),
+      ),
       body: Column(
         children: [
           Card(
@@ -22,15 +25,23 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: Row(
                 children: [
-                  const Text('Total', style: TextStyle(fontSize: 20),),
+                  const Text(
+                    'Total',
+                    style: TextStyle(fontSize: 20),
+                  ),
                   const Spacer(),
                   Chip(
                     label: Text('\$ ${cart.totalAmount.toStringAsFixed(2)}'),
                     backgroundColor: Theme.of(context).primaryColor,
                   ),
-                  const SizedBox(width: 10,),
+                  const SizedBox(
+                    width: 10,
+                  ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<Orders>().addOrder(
+                          cart.items.values.toList(), cart.totalAmount);
+                    },
                     child: Text(
                       'ORDER NOW',
                       style: TextStyle(color: Theme.of(context).primaryColor),
@@ -40,22 +51,21 @@ class CartScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10,),
+          const SizedBox(
+            height: 10,
+          ),
           Expanded(
               child: ListView.builder(
                   itemCount: cart.itemCount,
                   itemBuilder: (ctx, idx) => CartItemWidget(
-                    keyCartItem: cart.items.keys.toList()[idx],
-                    productId: cart.items.values.toList()[idx].productId,
-                    unitPrice: cart.items.values.toList()[idx].unitPrice,
-                    quantity: cart.items.values.toList()[idx].quantity,
-                    name: cart.items.values.toList()[idx].name,
-                  )
-              )
-          ),
+                        keyCartItem: cart.items.keys.toList()[idx],
+                        productId: cart.items.values.toList()[idx].productId,
+                        unitPrice: cart.items.values.toList()[idx].unitPrice,
+                        quantity: cart.items.values.toList()[idx].quantity,
+                        name: cart.items.values.toList()[idx].name,
+                      ))),
         ],
       ),
     );
   }
-
 }
