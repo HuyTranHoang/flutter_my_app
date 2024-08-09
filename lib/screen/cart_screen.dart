@@ -41,6 +41,7 @@ class CartScreen extends StatelessWidget {
                     onPressed: () {
                       context.read<Orders>().addOrder(
                           cart.items.values.toList(), cart.totalAmount);
+                      cart.clear();
                     },
                     child: Text(
                       'ORDER NOW',

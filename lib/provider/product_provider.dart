@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:my_app/model/product.dart';
 
@@ -13,6 +15,8 @@ class ProductProvider with ChangeNotifier {
     Product(id: 7, name: 'Python Programming for Beginners', description: 'The Ultimate Guide for Beginners', unitPrice: 21.99, imageUrl: 'https://i.postimg.cc/wBFzZk6R/BOOK-PROGRAMMING-1005.jpg',),
   ];
 
+  final List<Product> _favoriteItems = [];
+
   List<Product> get items {
     return [..._items];
   }
@@ -22,6 +26,23 @@ class ProductProvider with ChangeNotifier {
   }
 
   List<Product> get favoriteItems {
-    return _items.where((element) => element.isFavourite).toList();
+    return _favoriteItems;
+  }
+
+  void addToFavorites(int id) {
+    final index = _items.indexWhere((element) => element.id == id);
+    if (index >= 0) {
+      _items[index].isFavourite = true;
+      _favoriteItems.add(_items[index]);
+      notifyListeners();
+    }
+  }
+
+  void updateProduct(Product product) {
+    final index = _items.indexWhere((item) => item.id == product.id);
+    if (index >= 0) {
+      _items[index] = product;
+      notifyListeners();
+    }
   }
 }
