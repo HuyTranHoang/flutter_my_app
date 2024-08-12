@@ -5,10 +5,10 @@ class AdminProductItemWidget extends StatelessWidget {
   final String imageUrl;
 
   const AdminProductItemWidget({
-    Key? key,
     required this.title,
     required this.imageUrl,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +24,16 @@ class AdminProductItemWidget extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {},
-              color: Theme.of(context).primaryColor,
+              color: Theme
+                  .of(context)
+                  .primaryColor,
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {},
-              color: Theme.of(context).errorColor,
+              color: Theme
+                  .of(context)
+                  .errorColor,
             ),
           ],
         ),
