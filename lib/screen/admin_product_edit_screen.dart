@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_app/model/product.dart';
 import 'package:my_app/provider/product_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class AdminProductEditScreen extends StatefulWidget {
   static const routeName = '/admin-product-edit';
@@ -32,25 +33,47 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
     'imageUrl': '',
   };
 
-  void _saveForm() {
+  Future<bool> isUrlValid(url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _saveForm() async {
     bool isValid = _form.currentState!.validate();
     if (!isValid) {
       return;
     }
-
+    if (!await isUrlValid(_imageUrlController.text)) {
+      return;
+    }
     _form.currentState!.save();
-    context.read<ProductProvider>().addProduct(_editedProduct);
+
+    if (_editedProduct.id != 0) {
+      context.read<ProductProvider>().updateProduct(_editedProduct);
+    } else {
+      context.read<ProductProvider>().addProduct(_editedProduct);
+    }
     Navigator.of(context).pop();
   }
 
-  _updateImageUrl() {
+  _updateImageUrl() async {
     if (!_imageFocusNode.hasFocus) {
       if (_imageUrlController.text.isEmpty ||
           (!_imageUrlController.text.startsWith('http') && !_imageUrlController.text.startsWith('https')) ||
           (!_imageUrlController.text.endsWith('.png') && !_imageUrlController.text.endsWith('.jpg') && !_imageUrlController.text.endsWith('.jpeg'))) {
         return;
       }
-      setState(() { });
+      if (await isUrlValid(_imageUrlController.text)) {
+        setState(() { });
+      }
     }
   }
 
@@ -62,16 +85,18 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productId = ModalRoute.of(context)!.settings.arguments as int;
-    if (productId != 0) {
-      _editedProduct = context.read<ProductProvider>().findById(productId);
-      _initValues = {
-        'name': _editedProduct.name,
-        'description': _editedProduct.description,
-        'unitPrice': _editedProduct.unitPrice.toString(),
-        'imageUrl': ''
-      };
-      _imageUrlController.text = _editedProduct.imageUrl;
+    if (ModalRoute.of(context)!.settings.arguments != null) {
+      final productId = ModalRoute.of(context)!.settings.arguments as int;
+      if (productId != 0) {
+        _editedProduct = context.read<ProductProvider>().findById(productId);
+        _initValues = {
+          'name': _editedProduct.name,
+          'description': _editedProduct.description,
+          'unitPrice': _editedProduct.unitPrice.toString(),
+          'imageUrl': ''
+        };
+        _imageUrlController.text = _editedProduct.imageUrl;
+      }
     }
 
     return Scaffold(

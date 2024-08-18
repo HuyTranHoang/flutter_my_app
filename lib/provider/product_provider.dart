@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/model/product.dart';
+import 'dart:convert';
+import 'dart:developer';
+import 'package:http/http.dart' as http;
 
 
 class ProductProvider with ChangeNotifier {
@@ -26,20 +29,45 @@ class ProductProvider with ChangeNotifier {
   }
 
   void addProduct(Product product) {
-    Product productWithMaxId =
-    _items.reduce((result, element) => result.id > element.id ? result : element);
-    final newProduct = Product(
-        id: productWithMaxId.id + 1,
-        name: product.name,
-        description: product.description,
-        unitPrice: product.unitPrice,
-        imageUrl: product.imageUrl);
-    _items.add(newProduct);
-    notifyListeners();
+    final url = Uri.parse('http://localhost:8080/api/products/add');
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    };
+    http.post(url, headers: headers, body: json.encode({
+      'name': product.name,
+      'description': product.description,
+      'unitPrice': product.unitPrice,
+      'imageUrl': product.imageUrl,
+      'date': DateTime.now().toIso8601String(),
+      'category': 'U',
+    })).then((response) {
+      final res = json.decode(response.body);
+      final newProduct = Product(
+        name: res['name'],
+        description: res['description'],
+        unitPrice: res['unitPrice'],
+        imageUrl: res['imageUrl'],
+        id: res['id'],
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    });
   }
 
-  void updateProduct() {
+  void updateProduct(Product product) {
+    final prodIndex = _items.indexWhere((element) => element.id == product.id);
+    if (prodIndex > -1) {
+      _items[prodIndex] = product;
+      notifyListeners();
+    } else {
+      log('problem with update product');
+    }
+  }
 
+  void deleteProduct(int id) {
+    _items.removeWhere((element) => element.id == id);
+    notifyListeners();
   }
 
 }
