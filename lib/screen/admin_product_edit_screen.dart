@@ -1,7 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:my_app/model/product.dart';
+import 'package:my_app/provider/product_provider.dart';
+import 'package:provider/provider.dart';
 
 class AdminProductEditScreen extends StatefulWidget {
   static const routeName = '/admin-product-edit';
@@ -25,18 +25,32 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
   Product _editedProduct =
       Product(id: 0, name: '', description: '', unitPrice: 0, imageUrl: '');
 
-  void _saveForm() {
-    _form.currentState!.save();
+  var _initValues = {
+    'name': '',
+    'description': '',
+    'unitPrice': '',
+    'imageUrl': '',
+  };
 
-    print(_editedProduct.name);
-    print(_editedProduct.unitPrice);
-    print(_editedProduct.description);
-    print(_editedProduct.imageUrl);
+  void _saveForm() {
+    bool isValid = _form.currentState!.validate();
+    if (!isValid) {
+      return;
+    }
+
+    _form.currentState!.save();
+    context.read<ProductProvider>().addProduct(_editedProduct);
+    Navigator.of(context).pop();
   }
 
   _updateImageUrl() {
     if (!_imageFocusNode.hasFocus) {
-      setState(() {});
+      if (_imageUrlController.text.isEmpty ||
+          (!_imageUrlController.text.startsWith('http') && !_imageUrlController.text.startsWith('https')) ||
+          (!_imageUrlController.text.endsWith('.png') && !_imageUrlController.text.endsWith('.jpg') && !_imageUrlController.text.endsWith('.jpeg'))) {
+        return;
+      }
+      setState(() { });
     }
   }
 
@@ -48,6 +62,18 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final productId = ModalRoute.of(context)!.settings.arguments as int;
+    if (productId != 0) {
+      _editedProduct = context.read<ProductProvider>().findById(productId);
+      _initValues = {
+        'name': _editedProduct.name,
+        'description': _editedProduct.description,
+        'unitPrice': _editedProduct.unitPrice.toString(),
+        'imageUrl': ''
+      };
+      _imageUrlController.text = _editedProduct.imageUrl;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Product'),

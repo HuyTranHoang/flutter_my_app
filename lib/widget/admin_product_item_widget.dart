@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screen/admin_product_edit_screen.dart';
 
 class AdminProductItemWidget extends StatelessWidget {
+  final int id;
   final String title;
   final String imageUrl;
 
   const AdminProductItemWidget({
+    required this.id,
     required this.title,
     required this.imageUrl,
     super.key,
@@ -23,7 +26,9 @@ class AdminProductItemWidget extends StatelessWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).pushNamed(AdminProductEditScreen.routeName, arguments: id);
+              },
               color: Theme
                   .of(context)
                   .primaryColor,

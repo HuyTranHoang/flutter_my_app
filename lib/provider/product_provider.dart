@@ -25,4 +25,21 @@ class ProductProvider with ChangeNotifier {
     return _items.where((element) => element.isFavourite).toList();
   }
 
+  void addProduct(Product product) {
+    Product productWithMaxId =
+    _items.reduce((result, element) => result.id > element.id ? result : element);
+    final newProduct = Product(
+        id: productWithMaxId.id + 1,
+        name: product.name,
+        description: product.description,
+        unitPrice: product.unitPrice,
+        imageUrl: product.imageUrl);
+    _items.add(newProduct);
+    notifyListeners();
+  }
+
+  void updateProduct() {
+
+  }
+
 }
