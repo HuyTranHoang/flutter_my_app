@@ -28,13 +28,13 @@ class ProductProvider with ChangeNotifier {
     return _items.where((element) => element.isFavourite).toList();
   }
 
-  void addProduct(Product product) {
+  Future<void> addProduct(Product product) {
     final url = Uri.parse('http://localhost:8080/api/products/add');
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Accept': '*/*'
     };
-    http.post(url, headers: headers, body: json.encode({
+    return http.post(url, headers: headers, body: json.encode({
       'name': product.name,
       'description': product.description,
       'unitPrice': product.unitPrice,
