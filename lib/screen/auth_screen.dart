@@ -27,7 +27,10 @@ class AuthScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const <Widget>[
-                AuthCard(),
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: AuthCard(),
+                )
               ],
             ),
           ),
