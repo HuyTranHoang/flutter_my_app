@@ -70,6 +70,29 @@ class ProductProvider with ChangeNotifier {
     return _items.where((element) => element.isFavourite).toList();
   }
 
+  Future<void> fetchAndSetProducts() async {
+    final url = Uri.parse('http://10.0.2.2:8080/api/products');
+    try {
+      final response = await http.get(url);
+      final extractedData = json.decode(response.body)['products'] as List<dynamic>;
+      final List<Product> loadedProducts = [];
+      extractedData.forEach((element) {
+        loadedProducts.add(Product(
+          id: element['id'],
+          name: element['name'],
+          description: element['description'],
+          unitPrice: element['unitPrice'],
+          imageUrl: element['imageUrl'],
+        ));
+      });
+      _items.clear();
+      _items.addAll(loadedProducts);
+      notifyListeners();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
   Future<void> addProduct(Product product) async {
     final url = Uri.parse('http://localhost:8080/api/products/add');
     Map<String, String> headers = {

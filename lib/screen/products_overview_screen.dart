@@ -4,6 +4,8 @@ import 'package:my_app/widget/badget.dart';
 import 'package:my_app/widget/navbar_drawer.dart';
 import 'package:provider/provider.dart';
 
+
+import '../provider/product_provider.dart';
 import '../widget/products_grid.dart';
 import 'cart_screen.dart';
 
@@ -20,7 +22,19 @@ class ProductsOverviewScreen extends StatefulWidget {
 }
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
+
   bool _showOnlyFavorites = false;
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      context.watch<ProductProvider>().fetchAndSetProducts()
+          .then((value) => null);
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +66,16 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
                   value: cartData.itemCount.toString(),
                   child: IconButton(
                     icon: const Icon(Icons.shopping_cart),
-                    onPressed: () => Navigator.of(context).pushNamed(CartScreen.routeName),
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(CartScreen.routeName),
                   )))
         ],
       ),
       drawer: const NavbarDrawer(),
-      body: ProductsGrid(_showOnlyFavorites),
+      body: RefreshIndicator(
+        onRefresh: () async => await context.watch<ProductProvider>().fetchAndSetProducts(),
+        child: ProductsGrid(_showOnlyFavorites),
+      ),
     );
   }
 }
