@@ -24,7 +24,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
 
   final _form = GlobalKey<FormState>();
   bool _isLoading = false;
-  Timer _timer = Timer(const Duration(milliseconds: 1), () {});
+  final Timer _timer = Timer(const Duration(milliseconds: 1), () {});
 
   Product _editedProduct =
       Product(id: 0, name: '', description: '', unitPrice: 0, imageUrl: '');
@@ -68,7 +68,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
       try {
         await context.read<ProductProvider>().addProduct(_editedProduct);
       } catch (error) {
-        await showDialog<Null>(
+        await showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
                   title: const Text('Error Message'),
@@ -81,12 +81,10 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                   ],
                 ));
       } finally {
-        _timer = Timer(const Duration(milliseconds: 1), () {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pop();
+        setState(() {
+          _isLoading = false;
         });
+        Navigator.of(context).pop();
       }
     }
   }

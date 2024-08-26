@@ -125,18 +125,51 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  void updateProduct(Product product) {
-    final prodIndex = _items.indexWhere((element) => element.id == product.id);
-    if (prodIndex > -1) {
-      _items[prodIndex] = product;
+  Future<void> updateProduct(Product product) async {
+    final url = Uri.parse('http://localhost:8080/api/products/update');
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    };
+    try {
+      final response = await http.post(url,
+          headers: headers,
+          body: json.encode({
+            'name': product.name,
+            'description': product.description,
+            'unitPrice': product.unitPrice,
+            'imageUrl': product.imageUrl,
+            'date': DateTime.now().toIso8601String(),
+            'category': 'U',
+          }));
+      final res = json.decode(response.body);
+      final updateProduct = Product(
+        name: res['name'],
+        description: res['description'],
+        unitPrice: res['unitPrice'],
+        imageUrl: res['imageUrl'],
+        id: res['id'],
+      );
+      final index = _items.indexWhere((element) => element.id == product.id);
+      _items[index] = updateProduct;
       notifyListeners();
-    } else {
-      log('problem with update product');
+    } catch (error) {
+      rethrow;
     }
   }
 
-  void deleteProduct(int id) {
-    _items.removeWhere((element) => element.id == id);
-    notifyListeners();
+  Future<void> deleteProduct(int id) async {
+    final url = Uri.parse('http://localhost:8080/api/products/delete/$id');
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 204) {
+        _items.removeWhere((element) => element.id == id);
+        notifyListeners();
+      } else {
+        throw 'Failed to delete product';
+      }
+    } catch (error) {
+      rethrow;
+    }
   }
 }
