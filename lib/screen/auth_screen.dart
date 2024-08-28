@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/model/http_exception.dart';
+import 'package:my_app/provider/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class AuthScreen extends StatelessWidget {
   static const routeName = '/auth';
@@ -8,35 +11,34 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue,
-                  Colors.pinkAccent,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0, 1],
-              ),
-            ),
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const <Widget>[
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: AuthCard(),
-                )
+        body: Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.blue,
+                Colors.pinkAccent,
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [0, 1],
             ),
           ),
-        ],
-      )
-    );
+        ),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              Padding(
+                padding: EdgeInsets.all(20),
+                child: AuthCard(),
+              )
+            ],
+          ),
+        ),
+      ],
+    ));
   }
 }
 
@@ -57,8 +59,27 @@ class _AuthCardState extends State<AuthCard> {
     'password': '',
   };
   var _isLoading = false;
+  final _passwordController = TextEditingController();
 
-  void _submit() {
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('An Error Occurred!'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Okay'),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -70,9 +91,19 @@ class _AuthCardState extends State<AuthCard> {
     });
 
     if (_authMode == AuthMode.login) {
-      // Log user in
+      try {
+        await context
+            .read<AuthProvider>()
+            .login(_authData['email']!, _authData['password']!);
+      } on HttpException catch (error) {
+        _showErrorDialog(error.toString());
+      } catch (error) {
+        _showErrorDialog(error.toString());
+      }
     } else {
-      // Sign user up
+      await context
+          .read<AuthProvider>()
+          .signup(_authData['email']!, _authData['password']!);
     }
 
     setState(() {
@@ -94,9 +125,6 @@ class _AuthCardState extends State<AuthCard> {
 
   @override
   Widget build(BuildContext context) {
-
-    final _passwordController = TextEditingController();
-
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -138,7 +166,8 @@ class _AuthCardState extends State<AuthCard> {
               if (_authMode == AuthMode.signUp)
                 TextFormField(
                   enabled: _authMode == AuthMode.signUp,
-                  decoration: const InputDecoration(labelText: 'Confirm Password'),
+                  decoration:
+                      const InputDecoration(labelText: 'Confirm Password'),
                   obscureText: true,
                   validator: _authMode == AuthMode.signUp
                       ? (value) {
@@ -155,7 +184,8 @@ class _AuthCardState extends State<AuthCard> {
               else
                 ElevatedButton(
                   onPressed: _submit,
-                  child: Text(_authMode == AuthMode.login ? 'LOGIN' : 'SIGN UP'),
+                  child:
+                      Text(_authMode == AuthMode.login ? 'LOGIN' : 'SIGN UP'),
                 ),
               TextButton(
                 onPressed: _switchAuthMode,
