@@ -22,53 +22,45 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> signup(String email, String password) async {
-    final url = Uri.parse('http://10.0.2.2/api/user/register');
+    final url = Uri.parse('http://10.0.2.2:8080/api/user/register');
     Map<String, String> headers = {
-      "Content-type": "application/json",
-      "Accept": "*/*",
+      'Content-type': 'application/json',
+      'Accept': '*/*',
     };
 
     try {
       final response = await http.post(url,
           headers: headers,
-          body: json.encode({
-            'email': email,
-            'password': password,
-          }));
-
-      final responseData = json.decode(response.body);
-      log(responseData.toString());
+          body: json.encode({'email': email, 'password': password}));
+      final res = json.decode(response.body);
+      log(res.toString());
       notifyListeners();
-    } catch (error) {
-      log(error.toString());
+    } catch (err) {
+      log(err.toString());
       rethrow;
     }
   }
 
   Future<void> login(String email, String password) async {
-    final url = Uri.parse('http://10.0.2.2/api/user/login');
+    final url = Uri.parse('http://10.0.2.2:8080/api/user/login');
     Map<String, String> headers = {
-      "Content-type": "application/json",
-      "Accept": "*/*",
+      'Content-type': 'application/json',
+      'Accept': '*/*',
     };
 
     try {
       final response = await http.post(url,
           headers: headers,
-          body: json.encode({
-            'email': email,
-            'password': password,
-          }));
+          body: json.encode({'email': email, 'password': password}));
 
-      if(response.statusCode != 200) {
+      if (response.statusCode != 200) {
         throw HttpException(json.decode(response.body)['message']);
       }
-
-      final responseData = json.decode(response.body);
-      _token = responseData['token'];
+      final res = json.decode(response.body);
+      _token = res['token'];
       notifyListeners();
-    } catch (error) {
-      log(error.toString());
+    } catch (err) {
+      log(err.toString());
       rethrow;
     }
   }
