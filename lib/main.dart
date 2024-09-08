@@ -13,7 +13,20 @@ import 'package:my_app/screen/products_overview_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => ProductProvider()),
+        ChangeNotifierProvider(create: (context) => Cart()),
+        ChangeNotifierProxyProvider<AuthProvider, Orders>(
+          create: (ctx) => Orders(Provider.of<AuthProvider>(ctx, listen: false).token, []),
+          update: (ctx, auth, previous) => Orders(auth.token, previous?.orders ?? []),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -21,40 +34,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-              create: (BuildContext context) => ProductProvider()),
-          ChangeNotifierProvider(create: (BuildContext context) => Cart()),
-          ChangeNotifierProvider(create: (BuildContext context) => Orders()),
-          ChangeNotifierProvider(
-              create: (BuildContext context) => AuthProvider()),
-        ],
-        child: Consumer<AuthProvider>(builder: (context, auth, _) {
-          return MaterialApp(
-            title: 'Flutter Demo',
-            theme: ThemeData(
-                fontFamily: 'Roboto',
-                // primarySwatch: Colors.blue,
-                colorScheme: ColorScheme.fromSwatch(
-                  primarySwatch: Colors.blue,
-                  accentColor: Colors.deepOrangeAccent,
-                )),
-            home: auth.isAuth
-                ? const ProductsOverviewScreen()
-                : const AuthScreen(),
-            routes: {
-              ProductsOverviewScreen.routeName: (ctx) =>
-                  const ProductsOverviewScreen(),
-              ProductDetailScreen.routeName: (ctx) =>
-                  const ProductDetailScreen(),
-              CartScreen.routeName: (ctx) => const CartScreen(),
-              OrderScreen.routeName: (ctx) => const OrderScreen(),
-              AdminProductScreen.routeName: (ctx) => const AdminProductScreen(),
-              AdminProductEditScreen.routeName: (ctx) =>
-                  const AdminProductEditScreen(),
-            },
-          );
-        }));
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) => MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          fontFamily: 'Roboto',
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.blue,
+            accentColor: Colors.deepOrangeAccent,
+          ),
+        ),
+        home: auth.isAuth ? const ProductsOverviewScreen() : const AuthScreen(),
+        routes: {
+          ProductsOverviewScreen.routeName: (ctx) => const ProductsOverviewScreen(),
+          ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
+          CartScreen.routeName: (ctx) => const CartScreen(),
+          OrderScreen.routeName: (ctx) => const OrderScreen(),
+          AdminProductScreen.routeName: (ctx) => const AdminProductScreen(),
+          AdminProductEditScreen.routeName: (ctx) => const AdminProductEditScreen(),
+        },
+      ),
+    );
   }
 }

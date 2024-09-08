@@ -5,10 +5,26 @@ import 'package:provider/provider.dart';
 import '../model/order.dart';
 import '../widget/navbar_drawer.dart';
 
-class OrderScreen extends StatelessWidget {
+class OrderScreen extends StatefulWidget {
   static const routeName = '/orders';
 
   const OrderScreen({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _OrderScreen();
+}
+
+class _OrderScreen extends State<OrderScreen> {
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      context.read<Orders>().fetchOrders();
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
