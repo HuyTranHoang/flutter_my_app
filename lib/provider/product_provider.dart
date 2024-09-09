@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/model/http_exception.dart';
 import 'package:my_app/model/product.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -29,29 +30,40 @@ class ProductProvider with ChangeNotifier {
       'Authorization': 'Bearer $authToken'
     };
 
-    var url = Uri.parse('http://10.0.2.2/api/favorite');
-    final favoriteResponse = await http.get(url, headers: headers);
-    Map<String, dynamic> favoriteData = json.decode(favoriteResponse.body);
-
-    url = Uri.parse('http://10.0.2.2:8080/api/products');
     try {
-      final response = await http.get(url);
+      // Fetch favorite products
+      var url = Uri.parse('http://10.0.2.2:8080/api/favorite');
+      final favoriteResponse = await http.get(url, headers: headers);
+      if (favoriteResponse.statusCode != 200) {
+        throw HttpException('Failed to fetch favorite products');
+      }
+      Map<String, dynamic> favoriteData = json.decode(favoriteResponse.body);
+      Set<String> favoriteIds = Set<String>.from(favoriteData['favorites'] ?? []);
+
+      // Fetch all products
+      url = Uri.parse('http://10.0.2.2:8080/api/products');
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode != 200) {
+        throw HttpException('Failed to fetch products');
+      }
       final extractedData = json.decode(response.body)['products'] as List<dynamic>;
-      final List<Product> loadedProducts = [];
-      extractedData.forEach((element) {
-        loadedProducts.add(Product(
+
+      final List<Product> loadedProducts = extractedData.map((element) {
+        return Product(
           id: element['id'],
           name: element['name'],
           description: element['description'],
-          unitPrice: element['unitPrice'],
+          unitPrice: element['unitPrice'].toDouble(),
           imageUrl: element['imageUrl'],
-          isFavourite: favoriteData[element['id']] ?? false,
-        ));
-      });
+          isFavourite: favoriteIds.contains(element['id']),
+        );
+      }).toList();
+
       _items.clear();
       _items.addAll(loadedProducts);
       notifyListeners();
     } catch (error) {
+      print('Error fetching products: $error');
       rethrow;
     }
   }
