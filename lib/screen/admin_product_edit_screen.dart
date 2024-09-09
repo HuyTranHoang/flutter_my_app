@@ -20,20 +20,28 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
   final _descriptionFocusNode = FocusNode();
   final _priceFocusNode = FocusNode();
   final _imageFocusNode = FocusNode();
+  final _categoryFocusNode = FocusNode();
   final _imageUrlController = TextEditingController();
 
   final _form = GlobalKey<FormState>();
   bool _isLoading = false;
   final Timer _timer = Timer(const Duration(milliseconds: 1), () {});
 
-  Product _editedProduct =
-      Product(id: 0, name: '', description: '', unitPrice: 0, imageUrl: '');
+  Product _editedProduct = Product(
+    id: 0,
+    name: '',
+    description: '',
+    unitPrice: 0,
+    imageUrl: '',
+    category: '',
+  );
 
   var _initValues = {
     'name': '',
     'description': '',
     'unitPrice': '',
     'imageUrl': '',
+    'category': '',
   };
 
   Future<bool> isUrlValid(url) async {
@@ -62,30 +70,31 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
     });
     _form.currentState!.save();
 
-    if (_editedProduct.id != 0) {
-      context.read<ProductProvider>().updateProduct(_editedProduct);
-    } else {
-      try {
+    try {
+      if (_editedProduct.id != 0) {
+        await context.read<ProductProvider>().updateProduct(_editedProduct);
+      } else {
         await context.read<ProductProvider>().addProduct(_editedProduct);
-      } catch (error) {
-        await showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-                  title: const Text('Error Message'),
-                  content: Text(error.toString()),
-                  actions: [
-                    TextButton(
-                      child: const Text('OK'),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    )
-                  ],
-                ));
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
       }
+    } catch (error) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('An error occurred!'),
+          content: Text(error.toString()),
+          actions: [
+            TextButton(
+              child: const Text('Okay'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            )
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      Navigator.of(context).pop();
     }
   }
 
@@ -122,6 +131,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
           'description': _editedProduct.description,
           'unitPrice': _editedProduct.unitPrice.toString(),
           'imageUrl': _editedProduct.imageUrl,
+          'category': _editedProduct.category,
         };
         _imageUrlController.text = _editedProduct.imageUrl;
       }
@@ -165,6 +175,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       description: _editedProduct.description,
                       unitPrice: _editedProduct.unitPrice,
                       imageUrl: _editedProduct.imageUrl,
+                      category: _editedProduct.category,
                     );
                   },
                 ),
@@ -175,8 +186,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                   keyboardType: TextInputType.number,
                   focusNode: _priceFocusNode,
                   onFieldSubmitted: (_) {
-                    FocusScope.of(context)
-                        .requestFocus(_descriptionFocusNode);
+                    FocusScope.of(context).requestFocus(_descriptionFocusNode);
                   },
                   onSaved: (value) {
                     _editedProduct = Product(
@@ -185,6 +195,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       description: _editedProduct.description,
                       unitPrice: double.parse(value!),
                       imageUrl: _editedProduct.imageUrl,
+                      category: _editedProduct.category,
                     );
                   },
                 ),
@@ -201,6 +212,26 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       description: value!,
                       unitPrice: _editedProduct.unitPrice,
                       imageUrl: _editedProduct.imageUrl,
+                      category: _editedProduct.category,
+                    );
+                  },
+                ),
+                TextFormField(
+                  initialValue: _initValues['category'],
+                  decoration: const InputDecoration(labelText: 'Category'),
+                  textInputAction: TextInputAction.next,
+                  focusNode: _categoryFocusNode,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_imageFocusNode);
+                  },
+                  onSaved: (value) {
+                    _editedProduct = Product(
+                      id: _editedProduct.id,
+                      name: _editedProduct.name,
+                      description: _editedProduct.description,
+                      unitPrice: _editedProduct.unitPrice,
+                      imageUrl: _editedProduct.imageUrl,
+                      category: value!,
                     );
                   },
                 ),
@@ -233,6 +264,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                             description: _editedProduct.description,
                             unitPrice: _editedProduct.unitPrice,
                             imageUrl: value!,
+                            category: _editedProduct.category,
                           );
                         },
                         validator: (value) {
@@ -273,6 +305,7 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
     _descriptionFocusNode.dispose();
     _priceFocusNode.dispose();
     _imageFocusNode.dispose();
+    _categoryFocusNode.dispose();
     _imageUrlController.dispose();
     _timer.cancel();
     super.dispose();

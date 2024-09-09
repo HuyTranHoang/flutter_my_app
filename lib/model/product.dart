@@ -5,20 +5,23 @@ import 'package:http/http.dart' as http;
 import 'package:my_app/model/http_exception.dart';
 
 class Product with ChangeNotifier {
-  int id;
-  String name;
-  String description;
-  double unitPrice;
-  String imageUrl;
+  final int id;
+  final String name;
+  final String description;
+  final double unitPrice;
+  final String imageUrl;
+  final String category;
   bool isFavourite;
 
-  Product(
-      {required this.id,
-      required this.name,
-      required this.description,
-      required this.unitPrice,
-      required this.imageUrl,
-      this.isFavourite = false});
+  Product({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.unitPrice,
+    required this.imageUrl,
+    required this.category,
+    this.isFavourite = false,
+  });
 
   Future<void> toggleFavoriteStatus(String token) async {
     final url = Uri.parse('http://10.0.2.2:8080/api/favorite');
