@@ -89,14 +89,14 @@ class AuthProvider with ChangeNotifier {
     Future.delayed(Duration(seconds: timeToExpiry), logout);
   }
 
-  Future<void> tryAutoLogin() async {
+  Future<bool> tryAutoLogin() async {
     if (token.isNotEmpty) {
-      return;
+      return false;
     }
 
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('userData')) {
-      return;
+      return false;
     }
 
     final userData =
@@ -104,12 +104,13 @@ class AuthProvider with ChangeNotifier {
     final expiryDate = DateTime.parse(userData['expiryDate'].toString());
 
     if (expiryDate.isBefore(DateTime.now())) {
-      return;
+      return false;
     }
 
     _token = userData['token'].toString();
     _expiryDate = expiryDate;
     notifyListeners();
     _autoLogout();
+    return true;
   }
 }
