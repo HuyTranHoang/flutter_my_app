@@ -20,8 +20,10 @@ void main() {
         ChangeNotifierProvider(create: (context) => ProductProvider()),
         ChangeNotifierProvider(create: (context) => Cart()),
         ChangeNotifierProxyProvider<AuthProvider, Orders>(
-          create: (ctx) => Orders(Provider.of<AuthProvider>(ctx, listen: false).token, []),
-          update: (ctx, auth, previous) => Orders(auth.token, previous?.orders ?? []),
+          create: (ctx) =>
+              Orders(Provider.of<AuthProvider>(ctx, listen: false).token, []),
+          update: (ctx, auth, previous) =>
+              Orders(auth.token, previous?.orders ?? []),
         ),
       ],
       child: const MyApp(),
@@ -44,14 +46,27 @@ class MyApp extends StatelessWidget {
             accentColor: Colors.deepOrangeAccent,
           ),
         ),
-        home: auth.isAuth ? const ProductsOverviewScreen() : const AuthScreen(),
+        home: auth.isAuth
+            ? const ProductsOverviewScreen()
+            : FutureBuilder(
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    return const AuthScreen();
+                  }
+                },
+                future: auth.tryAutoLogin(),
+              ),
         routes: {
-          ProductsOverviewScreen.routeName: (ctx) => const ProductsOverviewScreen(),
+          ProductsOverviewScreen.routeName: (ctx) =>
+              const ProductsOverviewScreen(),
           ProductDetailScreen.routeName: (ctx) => const ProductDetailScreen(),
           CartScreen.routeName: (ctx) => const CartScreen(),
           OrderScreen.routeName: (ctx) => const OrderScreen(),
           AdminProductScreen.routeName: (ctx) => const AdminProductScreen(),
-          AdminProductEditScreen.routeName: (ctx) => const AdminProductEditScreen(),
+          AdminProductEditScreen.routeName: (ctx) =>
+              const AdminProductEditScreen(),
         },
       ),
     );
