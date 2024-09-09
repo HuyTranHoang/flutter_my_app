@@ -17,13 +17,18 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
-        ChangeNotifierProvider(create: (context) => ProductProvider()),
         ChangeNotifierProvider(create: (context) => Cart()),
         ChangeNotifierProxyProvider<AuthProvider, Orders>(
           create: (ctx) =>
               Orders(Provider.of<AuthProvider>(ctx, listen: false).token, []),
           update: (ctx, auth, previous) =>
               Orders(auth.token, previous?.orders ?? []),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ProductProvider>(
+          create: (ctx) => ProductProvider(
+              Provider.of<AuthProvider>(ctx, listen: false).token, []),
+          update: (ctx, auth, previous) =>
+              ProductProvider(auth.token, previous?.items ?? []),
         ),
       ],
       child: const MyApp(),

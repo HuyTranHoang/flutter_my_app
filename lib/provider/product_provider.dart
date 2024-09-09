@@ -4,7 +4,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ProductProvider with ChangeNotifier {
-  final List<Product> _items = [];
+  final String authToken;
+
+  List<Product> _items = [];
+
+  ProductProvider(this.authToken, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -19,7 +23,17 @@ class ProductProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    final url = Uri.parse('http://10.0.2.2:8080/api/products');
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Accept': '*/*',
+      'Authorization': 'Bearer $authToken'
+    };
+
+    var url = Uri.parse('http://10.0.2.2/api/favorite');
+    final favoriteResponse = await http.get(url, headers: headers);
+    Map<String, dynamic> favoriteData = json.decode(favoriteResponse.body);
+
+    url = Uri.parse('http://10.0.2.2:8080/api/products');
     try {
       final response = await http.get(url);
       final extractedData = json.decode(response.body)['products'] as List<dynamic>;
@@ -31,6 +45,7 @@ class ProductProvider with ChangeNotifier {
           description: element['description'],
           unitPrice: element['unitPrice'],
           imageUrl: element['imageUrl'],
+          isFavourite: favoriteData[element['id']] ?? false,
         ));
       });
       _items.clear();
