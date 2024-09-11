@@ -178,6 +178,12 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       category: _editedProduct.category,
                     );
                   },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please provide a value';
+                    }
+                    return null;
+                  },
                 ),
                 TextFormField(
                   initialValue: _initValues['unitPrice'],
@@ -197,6 +203,18 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       imageUrl: _editedProduct.imageUrl,
                       category: _editedProduct.category,
                     );
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter a price';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    if (double.parse(value) <= 0) {
+                      return 'Please enter a number greater than zero';
+                    }
+                    return null;
                   },
                 ),
                 TextFormField(
@@ -233,6 +251,16 @@ class _AdminProductEditScreenState extends State<AdminProductEditScreen> {
                       imageUrl: _editedProduct.imageUrl,
                       category: value!,
                     );
+                  },
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter a category';
+                    }
+
+                    if (value.length > 1) {
+                      return 'Category must be a single character';
+                    }
+                    return null;
                   },
                 ),
                 Row(
